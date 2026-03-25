@@ -7,9 +7,18 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Plus, Check, X, Edit2 } from 'lucide-react';
 import { Member } from '@/types';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Trash2 } from 'lucide-react';
 
 export const Timeline: React.FC = () => {
-  const { viewMode, startDate, members, tasks, searchQuery, addMember, updateMember, t } = useAppContext();
+  const { viewMode, startDate, members, tasks, searchQuery, addMember, updateMember, deleteMember, t } = useAppContext();
   
   const { daysCount, dayWidth } = useMemo(() => {
     switch (viewMode) {
@@ -37,10 +46,13 @@ export const Timeline: React.FC = () => {
   const [editingMemberId, setEditingMemberId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
   const [editRole, setEditRole] = useState('');
+  const [editAvatar, setEditAvatar] = useState('');
 
   const [isAddingMember, setIsAddingMember] = useState(false);
   const [newName, setNewName] = useState('');
   const [newRole, setNewRole] = useState('');
+
+  const [memberToDelete, setMemberToDelete] = useState<string | null>(null);
 
   const days = useMemo(() => {
     return Array.from({ length: daysCount }).map((_, i) => addDays(startDate, i));
@@ -70,13 +82,19 @@ export const Timeline: React.FC = () => {
     setEditingMemberId(member.id);
     setEditName(member.name);
     setEditRole(member.role);
+    setEditAvatar(member.avatar);
   };
 
   const handleEditSave = (id: string) => {
     if (editName.trim() && editRole.trim()) {
-      updateMember(id, { name: editName, role: editRole });
+      updateMember(id, { name: editName, role: editRole, avatar: editAvatar });
     }
     setEditingMemberId(null);
+  };
+
+  const handleDeleteMember = (id: string) => {
+    deleteMember(id);
+    setMemberToDelete(null);
   };
 
   const handleAddMember = () => {
@@ -152,7 +170,19 @@ export const Timeline: React.FC = () => {
             <div className="w-64 shrink-0 border-r bg-white sticky left-0 z-10">
               {filteredMembers.map((member) => (
                 <div key={member.id} className="h-24 border-b p-4 flex items-center gap-3 group relative">
-                  <img src={member.avatar} alt={member.name} className="w-10 h-10 rounded-full object-cover" />
+                  {editingMemberId === member.id ? (
+                    <div className="flex flex-col gap-1 items-center">
+                      <img src={editAvatar || undefined} alt={member.name} className="w-10 h-10 rounded-full object-cover border border-gray-200" />
+                      <Input 
+                        value={editAvatar} 
+                        onChange={(e) => setEditAvatar(e.target.value)} 
+                        className="h-5 text-[10px] px-1 py-0 w-16" 
+                        placeholder={t('avatarUrl')}
+                      />
+                    </div>
+                  ) : (
+                    <img src={member.avatar || undefined} alt={member.name} className="w-10 h-10 rounded-full object-cover" />
+                  )}
                   
                   {editingMemberId === member.id ? (
                     <div className="flex-1 space-y-1">
@@ -181,14 +211,24 @@ export const Timeline: React.FC = () => {
                     <div className="flex-1 min-w-0">
                       <div className="font-medium text-sm truncate">{member.name}</div>
                       <div className="text-xs text-gray-500 truncate">{member.role}</div>
-                      <Button 
-                        size="icon" 
-                        variant="ghost" 
-                        className="absolute top-2 right-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={() => handleEditStart(member)}
-                      >
-                        <Edit2 className="w-3 h-3 text-gray-400" />
-                      </Button>
+                      <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Button 
+                          size="icon" 
+                          variant="ghost" 
+                          className="h-6 w-6"
+                          onClick={() => handleEditStart(member)}
+                        >
+                          <Edit2 className="w-3 h-3 text-gray-400" />
+                        </Button>
+                        <Button 
+                          size="icon" 
+                          variant="ghost" 
+                          className="h-6 w-6 hover:text-red-600"
+                          onClick={() => setMemberToDelete(member.id)}
+                        >
+                          <Trash2 className="w-3 h-3 text-gray-400 hover:text-red-600" />
+                        </Button>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -258,6 +298,24 @@ export const Timeline: React.FC = () => {
           </div>
         </div>
       </div>
+      <Dialog open={!!memberToDelete} onOpenChange={(open) => !open && setMemberToDelete(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t('deleteMember')}</DialogTitle>
+            <DialogDescription>
+              {t('confirmDeleteMember')}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setMemberToDelete(null)}>
+              {t('cancel')}
+            </Button>
+            <Button variant="destructive" onClick={() => memberToDelete && handleDeleteMember(memberToDelete)}>
+              {t('deleteMember')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

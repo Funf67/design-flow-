@@ -36,6 +36,11 @@ export const translations = {
     createTask: 'Create Task',
     dates: 'Dates',
     language: 'Language',
+    deleteMember: 'Delete Member',
+    confirmDeleteMember: 'Are you sure you want to delete this team member? This will also remove their assigned tasks.',
+    changeAvatar: 'Change Avatar',
+    avatarUrl: 'Avatar URL',
+    today: 'Today',
   },
   zh: {
     teamMembers: '团队成员',
@@ -72,5 +77,10 @@ export const translations = {
     createTask: '创建任务',
     dates: '日期',
     language: '语言',
+    deleteMember: '删除成员',
+    confirmDeleteMember: '确定要删除这位团队成员吗？这将同时移除其负责的任务。',
+    changeAvatar: '更换头像',
+    avatarUrl: '头像链接',
+    today: '今天',
   }
 };

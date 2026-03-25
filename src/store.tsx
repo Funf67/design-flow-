@@ -23,6 +23,7 @@ interface AppContextType extends AppState {
   getTasksForMember: (memberId: string) => Task[];
   addMember: (member: Member) => void;
   updateMember: (id: string, updates: Partial<Member>) => void;
+  deleteMember: (id: string) => void;
   setLanguage: (lang: Language) => void;
   t: (key: keyof typeof translations['en']) => string;
 }
@@ -103,7 +104,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [tasks, setTasks] = useState<Task[]>(mockTasks);
   const [tags] = useState<Tag[]>(mockTags);
   const [viewMode, setViewMode] = useState<'14-days' | '60-days' | '180-days' | '365-days'>('14-days');
-  const [startDate, setStartDate] = useState<Date>(subDays(today, 2)); // Start a bit before today
+  const [startDate, setStartDate] = useState<Date>(subDays(today, 7)); // Start 7 days before today to show past tasks
   const [language, setLanguage] = useState<Language>('zh');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -115,6 +116,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const addMember = (member: Member) => setMembers((prev) => [...prev, member]);
   const updateMember = (id: string, updates: Partial<Member>) =>
     setMembers((prev) => prev.map((m) => (m.id === id ? { ...m, ...updates } : m)));
+  const deleteMember = (id: string) => {
+    setMembers((prev) => prev.filter((m) => m.id !== id));
+    setTasks((prev) => prev.filter((t) => t.assigneeId !== id));
+  };
 
   const getTasksForMember = (memberId: string) => {
     const memberTasks = tasks.filter((t) => t.assigneeId === memberId);
@@ -147,6 +152,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     getTasksForMember,
     addMember,
     updateMember,
+    deleteMember,
     setLanguage,
     t,
   };
